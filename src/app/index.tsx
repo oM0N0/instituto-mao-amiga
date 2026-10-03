@@ -1,98 +1,75 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+type Ponto = {
+  id: string;
+  nome: string;
+  endereco: string;
+};
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+const pontosMock: Ponto[] = [
+  {
+    id: '1',
+    nome: 'Mercado Central',
+    endereco: 'Av. Rio Branco, 123',
+  },
+  {
+    id: '2',
+    nome: 'Feira do Bairro',
+    endereco: 'Praça Nossa Sra. da Conceição',
+  },
+  {
+    id: '3',
+    nome: 'Supermercado Boa Vida',
+    endereco: 'Rua 15 de Novembro, 456',
+  },
+];
+
+function PontoItem({ ponto }: { ponto: Ponto }) {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={styles.item}>
+      <Text style={styles.nome}>{ponto.nome}</Text>
+      <Text style={styles.endereco}>{ponto.endereco}</Text>
+    </View>
   );
 }
 
-export default function HomeScreen() {
+export default function TelaListaPontos() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Pontos de Coleta</Text>
+      {pontosMock.map((ponto) => (
+        <PontoItem key={ponto.id} ponto={ponto} />
+      ))}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    marginTop: 40,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  item: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  title: {
-    textAlign: 'center',
+  nome: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1B3A5C',
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  endereco: {
+    fontSize: 14,
+    color: '#555555',
+    marginTop: 4,
   },
 });
