@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TelaCadastroDoacao() {
   const [tipoItem, setTipoItem] = useState('');
@@ -37,47 +38,59 @@ export default function TelaCadastroDoacao() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Cadastrar Doação</Text>
+    <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.titulo}>Cadastrar Doação</Text>
 
-      <Text style={styles.label}>Tipo do item</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex: Arroz, Roupas, Brinquedos"
-        value={tipoItem}
-        onChangeText={setTipoItem}
-      />
+          <Text style={styles.label}>Tipo do item</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: Arroz, Roupas, Brinquedos"
+            value={tipoItem}
+            onChangeText={setTipoItem}
+          />
 
-      <Text style={styles.label}>Quantidade</Text>
-      <TextInput
-        style={[styles.input, erroQuantidade ? styles.inputErro : null]}
-        placeholder="Ex: 10"
-        value={quantidade}
-        onChangeText={validarQuantidade}
-        keyboardType="numeric"
-      />
-      {erroQuantidade ? <Text style={styles.erro}>{erroQuantidade}</Text> : null}
+          <Text style={styles.label}>Quantidade</Text>
+          <TextInput
+            style={[styles.input, erroQuantidade ? styles.inputErro : null]}
+            placeholder="Ex: 10"
+            value={quantidade}
+            onChangeText={validarQuantidade}
+            keyboardType="numeric"
+          />
+          {erroQuantidade ? <Text style={styles.erro}>{erroQuantidade}</Text> : null}
 
-      <Text style={styles.label}>Ponto de destino</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ex: Mercado Central"
-        value={pontoDestino}
-        onChangeText={setPontoDestino}
-      />
+          <Text style={styles.label}>Ponto de destino</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: Mercado Central"
+            value={pontoDestino}
+            onChangeText={setPontoDestino}
+          />
 
-      <TouchableOpacity style={styles.botao} onPress={handleCadastrar}>
-        <Text style={styles.botaoTexto}>Cadastrar Doação</Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity style={styles.botao} onPress={handleCadastrar}>
+            <Text style={styles.botaoTexto}>Cadastrar Doação</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#FFFFFF',
+  },
+  flex: {
+    flex: 1,
+  },
+  container: {
+    padding: 16,
   },
   titulo: {
     fontSize: 24,
@@ -97,6 +110,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     marginBottom: 16,
+    minHeight: 44,
   },
   inputErro: {
     borderColor: '#D32F2F',
@@ -113,6 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8,
+    minHeight: 44,
   },
   botaoTexto: {
     color: '#FFFFFF',
