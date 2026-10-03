@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Ponto } from '../data/pontos';
 import { pontosMock } from '../data/pontos';
 
@@ -16,24 +16,35 @@ export default function TelaListaPontos() {
   const router = useRouter();
 
   return (
-    <FlatList
-      data={pontosMock}
-      keyExtractor={(ponto) => ponto.id}
-      contentContainerStyle={styles.container}
-      renderItem={({ item: ponto }) => (
-        <PontoItem
-          ponto={ponto}
-          onPress={() => router.push({ pathname: '/ponto', params: { id: ponto.id } })}
-        />
-      )}
-    />
+    <View style={styles.tela}>
+      <FlatList
+        data={pontosMock}
+        keyExtractor={(ponto) => ponto.id}
+        contentContainerStyle={styles.container}
+        renderItem={({ item: ponto }) => (
+          <PontoItem
+            ponto={ponto}
+            onPress={() => router.push({ pathname: '/ponto', params: { id: ponto.id } })}
+          />
+        )}
+      />
+      <TouchableOpacity
+        style={styles.botaoCadastro}
+        onPress={() => router.push('/doacao')}
+      >
+        <Text style={styles.botaoCadastroTexto}>+ Nova Doação</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  tela: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
   },
   item: {
     marginBottom: 16,
@@ -50,5 +61,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555555',
     marginTop: 4,
+  },
+  botaoCadastro: {
+    backgroundColor: '#1B3A5C',
+    padding: 16,
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  botaoCadastroTexto: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
