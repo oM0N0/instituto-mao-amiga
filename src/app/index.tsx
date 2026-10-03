@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import type { Ponto } from '../data/pontos';
 import { pontosMock } from '../data/pontos';
 
@@ -16,30 +16,24 @@ export default function TelaListaPontos() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Pontos de Coleta</Text>
-      {pontosMock.map((ponto) => (
+    <FlatList
+      data={pontosMock}
+      keyExtractor={(ponto) => ponto.id}
+      contentContainerStyle={styles.container}
+      renderItem={({ item: ponto }) => (
         <PontoItem
-          key={ponto.id}
           ponto={ponto}
           onPress={() => router.push({ pathname: '/ponto', params: { id: ponto.id } })}
         />
-      ))}
-    </View>
+      )}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 16,
     backgroundColor: '#FFFFFF',
-  },
-  titulo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    marginTop: 40,
   },
   item: {
     marginBottom: 16,
