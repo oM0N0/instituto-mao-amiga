@@ -1,44 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import type { Ponto } from '../data/pontos';
+import { pontosMock } from '../data/pontos';
 
-type Ponto = {
-  id: string;
-  nome: string;
-  endereco: string;
-};
-
-const pontosMock: Ponto[] = [
-  {
-    id: '1',
-    nome: 'Mercado Central',
-    endereco: 'Av. Rio Branco, 123',
-  },
-  {
-    id: '2',
-    nome: 'Feira do Bairro',
-    endereco: 'Praça Nossa Sra. da Conceição',
-  },
-  {
-    id: '3',
-    nome: 'Supermercado Boa Vida',
-    endereco: 'Rua 15 de Novembro, 456',
-  },
-];
-
-function PontoItem({ ponto }: { ponto: Ponto }) {
+function PontoItem({ ponto, onPress }: { ponto: Ponto; onPress: () => void }) {
   return (
-    <View style={styles.item}>
+    <TouchableOpacity style={styles.item} onPress={onPress}>
       <Text style={styles.nome}>{ponto.nome}</Text>
       <Text style={styles.endereco}>{ponto.endereco}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 export default function TelaListaPontos() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Pontos de Coleta</Text>
       {pontosMock.map((ponto) => (
-        <PontoItem key={ponto.id} ponto={ponto} />
+        <PontoItem
+          key={ponto.id}
+          ponto={ponto}
+          onPress={() => router.push({ pathname: '/ponto', params: { id: ponto.id } })}
+        />
       ))}
     </View>
   );

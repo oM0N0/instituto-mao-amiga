@@ -1,18 +1,7 @@
+import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-
-type Ponto = {
-  nome: string;
-  endereco: string;
-  diasHorarios: string;
-  recebeDistribui: string;
-};
-
-const pontoMock: Ponto = {
-  nome: 'Mercado Central',
-  endereco: 'Av. Rio Branco, 123',
-  diasHorarios: 'Seg a Sex, 8h às 18h',
-  recebeDistribui: 'Recebe: alimentos, roupas, brinquedos',
-};
+import type { Ponto } from '../data/pontos';
+import { pontosMock } from '../data/pontos';
 
 function DetalhePonto({ ponto }: { ponto: Ponto }) {
   return (
@@ -26,7 +15,18 @@ function DetalhePonto({ ponto }: { ponto: Ponto }) {
 }
 
 export default function TelaDetalhePonto() {
-  return <DetalhePonto ponto={pontoMock} />;
+  const { id } = useLocalSearchParams();
+  const ponto = pontosMock.find((p) => p.id === id);
+
+  if (!ponto) {
+    return (
+      <View style={styles.container}>
+        <Text>Ponto não encontrado.</Text>
+      </View>
+    );
+  }
+
+  return <DetalhePonto ponto={ponto} />;
 }
 
 const styles = StyleSheet.create({
