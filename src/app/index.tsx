@@ -28,12 +28,20 @@ export default function TelaListaPontos() {
           />
         )}
       />
-      <TouchableOpacity
-        style={styles.botaoCadastro}
-        onPress={() => router.push('/doacao')}
-      >
-        <Text style={styles.botaoCadastroTexto}>+ Nova Doação</Text>
-      </TouchableOpacity>
+      <View style={styles.botoes}>
+        <TouchableOpacity
+          style={styles.botao}
+          onPress={() => router.push('/doacao')}
+        >
+          <Text style={styles.botaoTexto}>+ Nova Doação</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.botao, styles.botaoHistorico]}
+          onPress={() => router.push('/historico')}
+        >
+          <Text style={styles.botaoTexto}>Histórico de Doações</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -62,14 +70,21 @@ const styles = StyleSheet.create({
     color: '#555555',
     marginTop: 4,
   },
-  botaoCadastro: {
+  botoes: {
+    padding: 16,
+    gap: 10,
+  },
+  botao: {
     backgroundColor: '#1B3A5C',
     padding: 16,
-    margin: 16,
     borderRadius: 8,
     alignItems: 'center',
+    minHeight: 44,
   },
-  botaoCadastroTexto: {
+  botaoHistorico: {
+    backgroundColor: '#2E7D32',
+  },
+  botaoTexto: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',

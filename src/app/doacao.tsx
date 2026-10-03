@@ -1,12 +1,15 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { salvarDoacao } from '../data/doacoes';
 
 export default function TelaCadastroDoacao() {
   const [tipoItem, setTipoItem] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [pontoDestino, setPontoDestino] = useState('');
   const [erroQuantidade, setErroQuantidade] = useState('');
+  const router = useRouter();
 
   function validarQuantidade(valor: string) {
     setQuantidade(valor);
@@ -21,7 +24,7 @@ export default function TelaCadastroDoacao() {
     }
   }
 
-  function handleCadastrar() {
+  async function handleCadastrar() {
     if (!tipoItem.trim()) {
       Alert.alert('Erro', 'Informe o tipo do item.');
       return;
@@ -34,7 +37,19 @@ export default function TelaCadastroDoacao() {
       Alert.alert('Erro', 'Informe o ponto de destino.');
       return;
     }
-    Alert.alert('Sucesso', `Doação registrada!\n\nItem: ${tipoItem}\nQuantidade: ${quantidade}\nDestino: ${pontoDestino}`);
+
+    const novaDoacao = {
+      id: Date.now().toString(),
+      tipoItem: tipoItem.trim(),
+      quantidade: quantidade.trim(),
+      pontoDestino: pontoDestino.trim(),
+    };
+
+    await salvarDoacao(novaDoacao);
+
+    Alert.alert('Sucesso', 'Doação registrada e salva!', [
+      { text: 'OK', onPress: () => router.back() },
+    ]);
   }
 
   return (
