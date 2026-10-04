@@ -1,15 +1,33 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { salvarDoacao } from '../data/doacoes';
+import { atualizarDoacao, carregarDoacoes, salvarDoacao } from '../data/doacoes';
 
 export default function TelaCadastroDoacao() {
+  const { id } = useLocalSearchParams();
+  const editando = !!id;
+
   const [tipoItem, setTipoItem] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [pontoDestino, setPontoDestino] = useState('');
+  const [criadoEm, setCriadoEm] = useState('');
   const [erroQuantidade, setErroQuantidade] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    if (editando) {
+      carregarDoacoes().then((lista) => {
+        const doacao = lista.find((d) => d.id === id);
+        if (doacao) {
+          setTipoItem(doacao.tipoItem);
+          setQuantidade(doacao.quantidade);
+          setPontoDestino(doacao.pontoDestino);
+          setCriadoEm(doacao.criadoEm);
+        }
+      });
+    }
+  }, [id]);
 
   function validarQuantidade(valor: string) {
     setQuantidade(valor);
@@ -24,7 +42,7 @@ export default function TelaCadastroDoacao() {
     }
   }
 
-  async function handleCadastrar() {
+  async function handleSalvar() {
     if (!tipoItem.trim()) {
       Alert.alert('Erro', 'Informe o tipo do item.');
       return;
@@ -38,21 +56,30 @@ export default function TelaCadastroDoacao() {
       return;
     }
 
-    const novaDoacao = {
-      id: Date.now().toString(),
-      tipoItem: tipoItem.trim(),
-      quantidade: quantidade.trim(),
-      pontoDestino: pontoDestino.trim(),
-      criadoEm: new Date().toLocaleString('pt-BR'),
-    };
-
-    await salvarDoacao(novaDoacao);
-
-    Alert.alert('Sucesso', 'Doação registrada e salva!', [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
-
-    
+    if (editando) {
+      await atualizarDoacao({
+        id: id as string,
+        tipoItem: tipoItem.trim(),
+        quantidade: quantidade.trim(),
+        pontoDestino: pontoDestino.trim(),
+        criadoEm,
+      });
+      Alert.alert('Sucesso', 'Doação atualizada!', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } else {
+      const novaDoacao = {
+        id: Date.now().toString(),
+        tipoItem: tipoItem.trim(),
+        quantidade: quantidade.trim(),
+        pontoDestino: pontoDestino.trim(),
+        criadoEm: new Date().toLocaleString('pt-BR'),
+      };
+      await salvarDoacao(novaDoacao);
+      Alert.alert('Sucesso', 'Doação registrada e salva!', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    }
   }
 
   return (
@@ -62,7 +89,9 @@ export default function TelaCadastroDoacao() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.titulo}>Cadastrar Doação</Text>
+          <Text style={styles.titulo}>
+            {editando ? 'Editar Doação' : 'Cadastrar Doação'}
+          </Text>
 
           <Text style={styles.label}>Tipo do item</Text>
           <TextInput
@@ -90,8 +119,10 @@ export default function TelaCadastroDoacao() {
             onChangeText={setPontoDestino}
           />
 
-          <TouchableOpacity style={styles.botao} onPress={handleCadastrar}>
-            <Text style={styles.botaoTexto}>Cadastrar Doação</Text>
+          <TouchableOpacity style={styles.botao} onPress={handleSalvar}>
+            <Text style={styles.botaoTexto}>
+              {editando ? 'Salvar Alterações' : 'Cadastrar Doação'}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

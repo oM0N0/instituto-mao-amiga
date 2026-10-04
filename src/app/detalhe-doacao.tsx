@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Doacao } from '../data/doacoes';
 import { carregarDoacoes, excluirDoacao } from '../data/doacoes';
@@ -9,12 +9,14 @@ export default function TelaDetalheDoacao() {
   const router = useRouter();
   const [doacao, setDoacao] = useState<Doacao | null>(null);
 
-  useEffect(() => {
-    carregarDoacoes().then((lista) => {
-      const encontrada = lista.find((d) => d.id === id);
-      setDoacao(encontrada ?? null);
-    });
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      carregarDoacoes().then((lista) => {
+        const encontrada = lista.find((d) => d.id === id);
+        setDoacao(encontrada ?? null);
+      });
+    }, [id])
+  );
 
   function handleExcluir() {
     Alert.alert(
@@ -56,6 +58,13 @@ export default function TelaDetalheDoacao() {
       <Text style={styles.label}>Data do registro</Text>
       <Text style={styles.valor}>{doacao.criadoEm || 'Sem data registrada'}</Text>
 
+      <TouchableOpacity
+        style={styles.botaoEditar}
+        onPress={() => router.push({ pathname: '/doacao', params: { id: doacao.id } })}
+      >
+        <Text style={styles.botaoEditarTexto}>Editar Doação</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.botaoExcluir} onPress={handleExcluir}>
         <Text style={styles.botaoExcluirTexto}>Excluir Doação</Text>
       </TouchableOpacity>
@@ -79,12 +88,25 @@ const styles = StyleSheet.create({
     color: '#1B3A5C',
     marginTop: 4,
   },
+  botaoEditar: {
+    backgroundColor: '#1B3A5C',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 32,
+    minHeight: 44,
+  },
+  botaoEditarTexto: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   botaoExcluir: {
     backgroundColor: '#D32F2F',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 12,
     minHeight: 44,
   },
   botaoExcluirTexto: {
