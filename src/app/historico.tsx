@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import type { Doacao } from '../data/doacoes';
 import { carregarDoacoes } from '../data/doacoes';
 
@@ -17,12 +17,17 @@ const DoacaoItem = React.memo(function DoacaoItem({ doacao, onPress }: { doacao:
 
 export default function TelaHistorico() {
   const [doacoes, setDoacoes] = useState<Doacao[]>([]);
+  const [busca, setBusca] = useState('');
   const router = useRouter();
 
   useFocusEffect(
     useCallback(() => {
       carregarDoacoes().then(setDoacoes);
     }, [])
+  );
+
+  const doacoesFiltradas = doacoes.filter((d) =>
+    d.tipoItem.toLowerCase().includes(busca.toLowerCase())
   );
 
   if (doacoes.length === 0) {
@@ -40,29 +45,61 @@ export default function TelaHistorico() {
   }
 
   return (
-    <FlatList
-      data={doacoes}
-      keyExtractor={(doacao) => doacao.id}
-      contentContainerStyle={styles.container}
-      renderItem={({ item }) => (
-        <DoacaoItem
-          doacao={item}
-          onPress={() => router.push({ pathname: '/detalhe-doacao', params: { id: item.id } })}
+    <KeyboardAvoidingView
+      style={styles.tela}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <TextInput
+        style={styles.campoBusca}
+        placeholder="Buscar por tipo de item..."
+        value={busca}
+        onChangeText={setBusca}
+      />
+
+      {doacoesFiltradas.length === 0 ? (
+        <View style={styles.containerVazio}>
+          <Text style={styles.vazio}>
+            Nenhuma doação encontrada para "{busca}".
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={doacoesFiltradas}
+          keyExtractor={(doacao) => doacao.id}
+          contentContainerStyle={styles.container}
+          renderItem={({ item }) => (
+            <DoacaoItem
+              doacao={item}
+              onPress={() => router.push({ pathname: '/detalhe-doacao', params: { id: item.id } })}
+            />
+          )}
         />
       )}
-    />
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  tela: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  campoBusca: {
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    margin: 16,
+    marginBottom: 0,
+    minHeight: 44,
+  },
   container: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
   },
   containerVazio: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
