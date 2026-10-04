@@ -4,14 +4,14 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import type { Doacao } from '../data/doacoes';
 import { carregarDoacoes } from '../data/doacoes';
 
-const DoacaoItem = React.memo(function DoacaoItem({ doacao }: { doacao: Doacao }) {
+const DoacaoItem = React.memo(function DoacaoItem({ doacao, onPress }: { doacao: Doacao; onPress: () => void }) {
   return (
-    <View style={styles.item}>
+    <TouchableOpacity style={styles.item} onPress={onPress}>
       <Text style={styles.tipo}>{doacao.tipoItem}</Text>
       <Text style={styles.info}>Quantidade: {doacao.quantidade}</Text>
       <Text style={styles.info}>Destino: {doacao.pontoDestino}</Text>
-      <Text style={styles.data}>{doacao.criadoEm}</Text>
-    </View>
+      {doacao.criadoEm ? <Text style={styles.data}>{doacao.criadoEm}</Text> : null}
+    </TouchableOpacity>
   );
 });
 
@@ -44,7 +44,12 @@ export default function TelaHistorico() {
       data={doacoes}
       keyExtractor={(doacao) => doacao.id}
       contentContainerStyle={styles.container}
-      renderItem={({ item }) => <DoacaoItem doacao={item} />}
+      renderItem={({ item }) => (
+        <DoacaoItem
+          doacao={item}
+          onPress={() => router.push({ pathname: '/detalhe-doacao', params: { id: item.id } })}
+        />
+      )}
     />
   );
 }

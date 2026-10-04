@@ -7,6 +7,7 @@ export default function Layout() {
       <Stack.Screen name="ponto" options={{ title: 'Detalhe do Ponto' }} />
       <Stack.Screen name="doacao" options={{ title: 'Cadastrar Doação' }} />
       <Stack.Screen name="historico" options={{ title: 'Histórico de Doações' }} />
+      <Stack.Screen name="detalhe-doacao" options={{ title: 'Detalhe da Doação' }} />
     </Stack>
   );
 }
