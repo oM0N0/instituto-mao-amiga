@@ -9,6 +9,7 @@ function DoacaoItem({ doacao }: { doacao: Doacao }) {
       <Text style={styles.tipo}>{doacao.tipoItem}</Text>
       <Text style={styles.info}>Quantidade: {doacao.quantidade}</Text>
       <Text style={styles.info}>Destino: {doacao.pontoDestino}</Text>
+      <Text style={styles.data}>{doacao.criadoEm}</Text>
     </View>
   );
 }
@@ -62,5 +63,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555555',
     marginTop: 4,
+  },
+    data: {
+    fontSize: 12,
+    color: '#999999',
+    marginTop: 8,
   },
 });

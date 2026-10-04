@@ -43,6 +43,7 @@ export default function TelaCadastroDoacao() {
       tipoItem: tipoItem.trim(),
       quantidade: quantidade.trim(),
       pontoDestino: pontoDestino.trim(),
+      criadoEm: new Date().toLocaleString('pt-BR'),
     };
 
     await salvarDoacao(novaDoacao);
@@ -50,6 +51,8 @@ export default function TelaCadastroDoacao() {
     Alert.alert('Sucesso', 'Doação registrada e salva!', [
       { text: 'OK', onPress: () => router.back() },
     ]);
+
+    
   }
 
   return (
