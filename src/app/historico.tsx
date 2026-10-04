@@ -15,6 +15,27 @@ const DoacaoItem = React.memo(function DoacaoItem({ doacao, onPress }: { doacao:
   );
 });
 
+function calcularResumo(doacoes: Doacao[]) {
+  const porTipo: Record<string, { quantidade: number; contagem: number }> = {};
+
+  for (const d of doacoes) {
+    const tipo = d.tipoItem.toLowerCase();
+    if (!porTipo[tipo]) {
+      porTipo[tipo] = { quantidade: 0, contagem: 0 };
+    }
+    porTipo[tipo].quantidade += Number(d.quantidade) || 0;
+    porTipo[tipo].contagem += 1;
+  }
+
+  return Object.entries(porTipo)
+    .map(([tipo, dados]) => ({
+      tipo: tipo.charAt(0).toUpperCase() + tipo.slice(1),
+      quantidade: dados.quantidade,
+      contagem: dados.contagem,
+    }))
+    .sort((a, b) => b.quantidade - a.quantidade);
+}
+
 export default function TelaHistorico() {
   const [doacoes, setDoacoes] = useState<Doacao[]>([]);
   const [busca, setBusca] = useState('');
@@ -30,6 +51,8 @@ export default function TelaHistorico() {
     d.tipoItem.toLowerCase().includes(busca.toLowerCase())
   );
 
+  const resumo = calcularResumo(doacoes);
+
   if (doacoes.length === 0) {
     return (
       <View style={styles.containerVazio}>
@@ -44,29 +67,48 @@ export default function TelaHistorico() {
     );
   }
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.tela}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+  const cabecalho = (
+    <View>
+      <View style={styles.resumoContainer}>
+        <Text style={styles.resumoTitulo}>
+          Total: {doacoes.length} {doacoes.length === 1 ? 'doação' : 'doações'}
+        </Text>
+        {resumo.map((r) => (
+          <Text key={r.tipo} style={styles.resumoLinha}>
+            {r.tipo}: {r.quantidade} un. ({r.contagem} {r.contagem === 1 ? 'doação' : 'doações'})
+          </Text>
+        ))}
+      </View>
+
       <TextInput
         style={styles.campoBusca}
         placeholder="Buscar por tipo de item..."
         value={busca}
         onChangeText={setBusca}
       />
+    </View>
+  );
 
+  return (
+    <KeyboardAvoidingView
+      style={styles.tela}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {doacoesFiltradas.length === 0 ? (
-        <View style={styles.containerVazio}>
-          <Text style={styles.vazio}>
-            Nenhuma doação encontrada para "{busca}".
-          </Text>
+        <View>
+          {cabecalho}
+          <View style={styles.containerVazio}>
+            <Text style={styles.vazio}>
+              Nenhuma doação encontrada para "{busca}".
+            </Text>
+          </View>
         </View>
       ) : (
         <FlatList
           data={doacoesFiltradas}
           keyExtractor={(doacao) => doacao.id}
           contentContainerStyle={styles.container}
+          ListHeaderComponent={cabecalho}
           renderItem={({ item }) => (
             <DoacaoItem
               doacao={item}
@@ -83,6 +125,24 @@ const styles = StyleSheet.create({
   tela: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  resumoContainer: {
+    backgroundColor: '#F5F5F5',
+    padding: 16,
+    margin: 16,
+    marginBottom: 0,
+    borderRadius: 8,
+  },
+  resumoTitulo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1B3A5C',
+    marginBottom: 8,
+  },
+  resumoLinha: {
+    fontSize: 14,
+    color: '#555555',
+    marginBottom: 4,
   },
   campoBusca: {
     borderWidth: 1,
