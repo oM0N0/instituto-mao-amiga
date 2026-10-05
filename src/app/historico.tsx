@@ -1,6 +1,7 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Doacao } from '../data/doacoes';
 import { carregarDoacoes } from '../data/doacoes';
 
@@ -55,7 +56,7 @@ export default function TelaHistorico() {
 
   if (doacoes.length === 0) {
     return (
-      <View style={styles.containerVazio}>
+      <SafeAreaView style={styles.containerVazio} edges={['bottom', 'left', 'right']}>
         <Text style={styles.vazio}>Nenhuma doação registrada ainda.</Text>
         <TouchableOpacity
           style={styles.botao}
@@ -63,45 +64,37 @@ export default function TelaHistorico() {
         >
           <Text style={styles.botaoTexto}>Cadastrar Doação</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   const cabecalho = (
-    <View>
-      <View style={styles.resumoContainer}>
-        <Text style={styles.resumoTitulo}>
-          Total: {doacoes.length} {doacoes.length === 1 ? 'doação' : 'doações'}
+    <View style={styles.resumoContainer}>
+      <Text style={styles.resumoTitulo}>
+        Total: {doacoes.length} {doacoes.length === 1 ? 'doação' : 'doações'}
+      </Text>
+      {resumo.map((r) => (
+        <Text key={r.tipo} style={styles.resumoLinha}>
+          {r.tipo}: {r.quantidade} un. ({r.contagem} {r.contagem === 1 ? 'doação' : 'doações'})
         </Text>
-        {resumo.map((r) => (
-          <Text key={r.tipo} style={styles.resumoLinha}>
-            {r.tipo}: {r.quantidade} un. ({r.contagem} {r.contagem === 1 ? 'doação' : 'doações'})
-          </Text>
-        ))}
-      </View>
+      ))}
+    </View>
+  );
 
+  return (
+    <SafeAreaView style={styles.tela} edges={['bottom', 'left', 'right']}>
       <TextInput
         style={styles.campoBusca}
         placeholder="Buscar por tipo de item..."
         value={busca}
         onChangeText={setBusca}
       />
-    </View>
-  );
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.tela}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
       {doacoesFiltradas.length === 0 ? (
-        <View>
-          {cabecalho}
-          <View style={styles.containerVazio}>
-            <Text style={styles.vazio}>
-              Nenhuma doação encontrada para "{busca}".
-            </Text>
-          </View>
+        <View style={styles.containerVazio}>
+          <Text style={styles.vazio}>
+            Nenhuma doação encontrada para "{busca}".
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -109,6 +102,7 @@ export default function TelaHistorico() {
           keyExtractor={(doacao) => doacao.id}
           contentContainerStyle={styles.container}
           ListHeaderComponent={cabecalho}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <DoacaoItem
               doacao={item}
@@ -117,7 +111,7 @@ export default function TelaHistorico() {
           )}
         />
       )}
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -129,8 +123,7 @@ const styles = StyleSheet.create({
   resumoContainer: {
     backgroundColor: '#F5F5F5',
     padding: 16,
-    margin: 16,
-    marginBottom: 0,
+    marginBottom: 16,
     borderRadius: 8,
   },
   resumoTitulo: {

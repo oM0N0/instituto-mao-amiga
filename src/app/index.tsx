@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Ponto } from '../data/pontos';
 import { pontosMock } from '../data/pontos';
 
@@ -12,11 +13,24 @@ function PontoItem({ ponto, onPress }: { ponto: Ponto; onPress: () => void }) {
   );
 }
 
+function Botoes({ onNovaDoacao, onHistorico }: { onNovaDoacao: () => void; onHistorico: () => void }) {
+  return (
+    <>
+      <TouchableOpacity style={styles.botao} onPress={onNovaDoacao}>
+        <Text style={styles.botaoTexto}>+ Nova Doação</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.botao, styles.botaoHistorico]} onPress={onHistorico}>
+        <Text style={styles.botaoTexto}>Histórico de Doações</Text>
+      </TouchableOpacity>
+    </>
+  );
+}
+
 export default function TelaListaPontos() {
   const router = useRouter();
 
   return (
-    <View style={styles.tela}>
+    <SafeAreaView style={styles.tela} edges={['bottom', 'left', 'right']}>
       <FlatList
         data={pontosMock}
         keyExtractor={(ponto) => ponto.id}
@@ -27,22 +41,14 @@ export default function TelaListaPontos() {
             onPress={() => router.push({ pathname: '/ponto', params: { id: ponto.id } })}
           />
         )}
+        ListFooterComponent={
+          <Botoes
+            onNovaDoacao={() => router.push('/doacao')}
+            onHistorico={() => router.push('/historico')}
+          />
+        }
       />
-      <View style={styles.botoes}>
-        <TouchableOpacity
-          style={styles.botao}
-          onPress={() => router.push('/doacao')}
-        >
-          <Text style={styles.botaoTexto}>+ Nova Doação</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.botao, styles.botaoHistorico]}
-          onPress={() => router.push('/historico')}
-        >
-          <Text style={styles.botaoTexto}>Histórico de Doações</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -53,6 +59,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
+    paddingBottom: 32,
   },
   item: {
     marginBottom: 16,
@@ -70,16 +77,13 @@ const styles = StyleSheet.create({
     color: '#555555',
     marginTop: 4,
   },
-  botoes: {
-    padding: 16,
-    gap: 10,
-  },
   botao: {
     backgroundColor: '#1B3A5C',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     minHeight: 44,
+    marginTop: 10,
   },
   botaoHistorico: {
     backgroundColor: '#2E7D32',
