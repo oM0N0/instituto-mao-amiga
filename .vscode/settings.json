@@ -3,6 +3,10 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
+<<<<<<< HEAD
   },
   "java.compile.nullAnalysis.mode": "automatic"
+=======
+  }
+>>>>>>> 1be389c4d70293c23384f87e3237a9b3dc6accea
 }
