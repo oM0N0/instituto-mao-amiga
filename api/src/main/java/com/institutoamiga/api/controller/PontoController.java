@@ -1,10 +1,11 @@
-package com.institutoamiga.api.controller;
+﻿package com.institutoamiga.api.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,15 @@ public class PontoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        if (!repository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public Page<PontoDTO> listar(
             @RequestParam(defaultValue = "0") int page,
@@ -44,9 +54,22 @@ public class PontoController {
         return repository.findAll(pageable).map(this::toDTO);
     }
 
+    @GetMapping("/filtro")
+    public Page<PontoDTO> filtrar(
+            @RequestParam(required = false, defaultValue = "") String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "nome") String sort) {
+
+        if (size > 50) size = 50;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        return repository.findByNomeContainingIgnoreCase(nome, pageable).map(this::toDTO);
+    }
+
     private PontoDTO toDTO(Ponto p) {
         return new PontoDTO(
-            p.getId(),
+            p.getId().toString(),
             p.getNome(),
             p.getEndereco(),
             p.getDiasHorarios(),

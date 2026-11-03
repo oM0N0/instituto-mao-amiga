@@ -1,7 +1,7 @@
-package com.institutoamiga.api.dto;
+﻿package com.institutoamiga.api.dto;
 
 public record PontoDTO(
-    Long id,
+    String pontoId,
     String nome,
     String endereco,
     String diasHorarios,

@@ -1,5 +1,5 @@
-export type Ponto = {
-  id: number;
+﻿export type Ponto = {
+  pontoId: string;
   nome: string;
   endereco: string;
   diasHorarios: string;
@@ -8,8 +8,8 @@ export type Ponto = {
   longitude: number;
 };
 
-export type PaginaPontos = {
-  content: Ponto[];
+export type Page<T> = {
+  content: T[];
   page: {
     size: number;
     number: number;
