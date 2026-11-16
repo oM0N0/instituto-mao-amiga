@@ -64,3 +64,25 @@ Chamadas de exemplo:
 1. Sem filtro: `http://localhost:8080/api/v1/pontos/filtro`
 2. Filtrando por bairro: `http://localhost:8080/api/v1/pontos/filtro?filtro=oeste`
 3. Segunda página: `http://localhost:8080/api/v1/pontos/filtro?page=1`
+
+## API: doações
+
+| Método | URL | O que faz | Respostas |
+|---|---|---|---|
+| GET | `http://localhost:8080/api/v1/doacoes/filtro?filtro=...&page=0&size=10` | lista paginada, filtrando pelo tipo de item, da mais nova para a mais antiga | 200 |
+| GET | `http://localhost:8080/api/v1/doacoes/{id}` | busca uma doação pelo id | 200, 404 |
+| POST | `http://localhost:8080/api/v1/doacoes` | cadastra uma doação | 201, 400 |
+| PUT | `http://localhost:8080/api/v1/doacoes/{id}` | edita uma doação | 200, 400, 404 |
+| DELETE | `http://localhost:8080/api/v1/doacoes/{id}` | exclui uma doação | 204, 404 |
+
+Corpo do POST e do PUT:
+
+```json
+{
+  "tipoItem": "Arroz",
+  "quantidade": 10,
+  "pontoDestino": "Mercado Central de Goiânia"
+}
+```
+
+`quantidade` precisa ser maior que zero; `tipoItem` e `pontoDestino` não podem ser vazios (senão 400). O campo `criadoEm` é preenchido pela API no cadastro e não muda na edição.
