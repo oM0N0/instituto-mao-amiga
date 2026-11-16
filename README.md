@@ -368,3 +368,33 @@ Corpo do POST e do PUT:
 ```
 
 `quantidade` precisa ser maior que zero; `tipoItem` e `pontoDestino` não podem ser vazios (senão 400). O campo `criadoEm` é preenchido pela API no cadastro e não muda na edição.
+
+### Prints do Swagger
+
+**GET `/api/v1/doacoes/filtro`: lista paginada, da mais nova para a mais antiga (200)**
+
+![GET /api/v1/doacoes/filtro](docs/prints/doacoes/01-get-filtro-200.png)
+
+**GET `/api/v1/doacoes/{id}`: busca uma doação (200)**
+
+![GET /api/v1/doacoes/{id}](docs/prints/doacoes/02-get-por-id-200.png)
+
+**POST `/api/v1/doacoes`: cadastra 10 de Arroz; o `criadoEm` vem da API (201)**
+
+![POST /api/v1/doacoes](docs/prints/doacoes/03-post-201.png)
+
+**PUT `/api/v1/doacoes/{id}`: muda a quantidade para 25 e mantém o mesmo `criadoEm` (200)**
+
+![PUT /api/v1/doacoes/{id}](docs/prints/doacoes/04-put-200.png)
+
+**DELETE `/api/v1/doacoes/{id}`: exclui a doação (204)**
+
+![DELETE /api/v1/doacoes/{id}](docs/prints/doacoes/05-delete-204.png)
+
+**POST `/api/v1/doacoes` com quantidade 0 (400)**
+
+![POST /api/v1/doacoes com quantidade 0](docs/prints/doacoes/06-post-quantidade-zero-400.png)
+
+**GET `/api/v1/doacoes/{id}` com id que não existe (404)**
+
+![GET /api/v1/doacoes/{id} inexistente](docs/prints/doacoes/07-get-id-inexistente-404.png)
