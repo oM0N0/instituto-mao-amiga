@@ -41,3 +41,7 @@ example
 # generated native folders
 /ios
 /android
+
+# banco H2 da API (gerado ao rodar)
+*.mv.db
+*.trace.db

@@ -1,11 +1,10 @@
-﻿package com.institutoamiga.api.repository;
+package com.institutoamiga.api.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.institutoamiga.api.model.Ponto;
+import com.institutoamiga.api.entity.Ponto;
 
-public interface PontoRepository extends JpaRepository<Ponto, Long> {
-    Page<Ponto> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+public interface PontoRepository extends JpaRepository<Ponto, UUID> {
 }

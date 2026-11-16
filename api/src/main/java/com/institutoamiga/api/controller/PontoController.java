@@ -1,81 +1,74 @@
-﻿package com.institutoamiga.api.controller;
+package com.institutoamiga.api.controller;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.institutoamiga.api.dto.PontoDTO;
-import com.institutoamiga.api.model.Ponto;
-import com.institutoamiga.api.repository.PontoRepository;
+import com.institutoamiga.api.dto.PontoRequestDTO;
+import com.institutoamiga.api.dto.PontoResponseDTO;
+import com.institutoamiga.api.service.PontoService;
+
+import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/pontos")
+@RequestMapping("/api/v1/pontos")
+@CrossOrigin
 public class PontoController {
 
-    private final PontoRepository repository;
+    private final PontoService service;
 
-    public PontoController(PontoRepository repository) {
-        this.repository = repository;
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<PontoDTO> buscarPorId(@PathVariable Long id) {
-        return repository.findById(id)
-                .map(ponto -> ResponseEntity.ok(toDTO(ponto)))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        repository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public PontoController(PontoService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public Page<PontoDTO> listar(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "nome") String sort) {
-
-        if (size > 50) size = 50;
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
-        return repository.findAll(pageable).map(this::toDTO);
+    public List<PontoResponseDTO> listar() {
+        return service.listarTodos();
     }
 
-    @GetMapping("/filtro")
-    public Page<PontoDTO> filtrar(
-            @RequestParam(required = false, defaultValue = "") String nome,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "nome") String sort) {
-
-        if (size > 50) size = 50;
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
-        return repository.findByNomeContainingIgnoreCase(nome, pageable).map(this::toDTO);
+    @GetMapping("/{id}")
+    public ResponseEntity<PontoResponseDTO> buscarPorId(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(service.buscarPorId(id));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    private PontoDTO toDTO(Ponto p) {
-        return new PontoDTO(
-            p.getId().toString(),
-            p.getNome(),
-            p.getEndereco(),
-            p.getDiasHorarios(),
-            p.getRecebeDistribui(),
-            p.getLatitude(),
-            p.getLongitude()
-        );
+    @PostMapping
+    public ResponseEntity<PontoResponseDTO> cadastrar(@Valid @RequestBody PontoRequestDTO dto) {
+        PontoResponseDTO criado = service.cadastrar(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PontoResponseDTO> editar(@PathVariable UUID id, @Valid @RequestBody PontoRequestDTO dto) {
+        try {
+            return ResponseEntity.ok(service.editar(id, dto));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable UUID id) {
+        try {
+            service.excluir(id);
+            return ResponseEntity.noContent().build();
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
