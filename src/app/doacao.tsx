@@ -1,85 +1,125 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { atualizarDoacao, carregarDoacoes, salvarDoacao } from '../services/doacoesStorage';
+import { statusDoErro } from '../services/api';
+import { cadastrarDoacao } from '../services/doacoesService';
+import { listarPontos } from '../services/pontosService';
+import type { Ponto } from '../types/ponto';
+
+// quantidade precisa ser um número inteiro maior que zero (a API recebe um inteiro)
+function quantidadeValida(valor: string): boolean {
+  const numero = Number(valor.trim());
+  return valor.trim() !== '' && Number.isInteger(numero) && numero > 0;
+}
 
 export default function TelaCadastroDoacao() {
-  const { id } = useLocalSearchParams();
-  const editando = !!id;
+  const router = useRouter();
 
   const [tipoItem, setTipoItem] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [pontoDestino, setPontoDestino] = useState('');
-  const [criadoEm, setCriadoEm] = useState('');
+  const [pontos, setPontos] = useState<Ponto[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erroCarregar, setErroCarregar] = useState('');
+  const [salvando, setSalvando] = useState(false);
   const [erroQuantidade, setErroQuantidade] = useState('');
-  const router = useRouter();
+
+  const carregar = useCallback(async () => {
+    try {
+      // o ponto de destino é escolhido entre os pontos da API
+      const listaPontos = await listarPontos();
+      setPontos(listaPontos);
+    } catch {
+      setErroCarregar('Não foi possível carregar os pontos. Verifique se a API está ligada.');
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (editando) {
-      carregarDoacoes().then((lista) => {
-        const doacao = lista.find((d) => d.id === id);
-        if (doacao) {
-          setTipoItem(doacao.tipoItem);
-          setQuantidade(String(doacao.quantidade));
-          setPontoDestino(doacao.pontoDestino);
-          setCriadoEm(doacao.criadoEm);
-        }
-      });
-    }
-  }, [id]);
+    carregar();
+  }, [carregar]);
+
+  function tentarNovamente() {
+    setCarregando(true);
+    setErroCarregar('');
+    carregar();
+  }
 
   function validarQuantidade(valor: string) {
     setQuantidade(valor);
-    if (valor === '') {
+    if (valor === '' || quantidadeValida(valor)) {
       setErroQuantidade('');
-      return;
-    }
-    if (isNaN(Number(valor)) || Number(valor) <= 0) {
-      setErroQuantidade('Quantidade deve ser um número maior que zero.');
     } else {
-      setErroQuantidade('');
+      setErroQuantidade('Quantidade deve ser um número inteiro maior que zero.');
     }
   }
 
   async function handleSalvar() {
     if (!tipoItem.trim()) {
-      Alert.alert('Erro', 'Informe o tipo do item.');
+      Alert.alert('Atenção', 'Informe o tipo do item.');
       return;
     }
-    if (!quantidade.trim() || isNaN(Number(quantidade)) || Number(quantidade) <= 0) {
-      Alert.alert('Erro', 'Informe uma quantidade válida.');
+    if (!quantidadeValida(quantidade)) {
+      Alert.alert('Atenção', 'Informe uma quantidade válida.');
       return;
     }
-    if (!pontoDestino.trim()) {
-      Alert.alert('Erro', 'Informe o ponto de destino.');
+    if (!pontoDestino) {
+      Alert.alert('Atenção', 'Selecione o ponto de destino.');
       return;
     }
 
-    if (editando) {
-      await atualizarDoacao({
-        id: id as string,
-        tipoItem: tipoItem.trim(),
-        quantidade: Number(quantidade.trim()),
-        pontoDestino: pontoDestino.trim(),
-        criadoEm,
-      });
-      Alert.alert('Sucesso', 'Doação atualizada!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
-    } else {
-      const novaDoacao = {
-        id: Date.now().toString(),
-        tipoItem: tipoItem.trim(),
-        quantidade: Number(quantidade.trim()),
-        pontoDestino: pontoDestino.trim(),
-        criadoEm: new Date().toLocaleString('pt-BR'),
-      };
-      await salvarDoacao(novaDoacao);
-      Alert.alert('Sucesso', 'Doação registrada e salva!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+    setSalvando(true);
+    const dados = {
+      tipoItem: tipoItem.trim(),
+      quantidade: Number(quantidade.trim()),
+      pontoDestino,
+    };
+
+    // em caso de erro os campos continuam preenchidos, porque o estado não é limpo
+    try {
+      await cadastrarDoacao(dados);
+      router.back();
+    } catch (e) {
+      if (statusDoErro(e) === 400) {
+        Alert.alert('Erro', 'A API recusou os dados. Verifique os campos.');
+      } else {
+        Alert.alert('Erro', 'Não foi possível salvar. Verifique se a API está ligada.');
+      }
+    } finally {
+      setSalvando(false);
     }
+  }
+
+  if (carregando) {
+    return (
+      <SafeAreaView style={styles.centro} edges={['bottom', 'left', 'right']}>
+        <ActivityIndicator size="large" color="#1B3A5C" />
+      </SafeAreaView>
+    );
+  }
+
+  if (erroCarregar) {
+    return (
+      <SafeAreaView style={styles.centro} edges={['bottom', 'left', 'right']}>
+        <Text style={styles.erroCarregar}>{erroCarregar}</Text>
+        <TouchableOpacity style={styles.botao} onPress={tentarNovamente}>
+          <Text style={styles.botaoTexto}>Tentar novamente</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -89,9 +129,7 @@ export default function TelaCadastroDoacao() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.titulo}>
-            {editando ? 'Editar Doação' : 'Cadastrar Doação'}
-          </Text>
+          <Text style={styles.titulo}>Cadastrar Doação</Text>
 
           <Text style={styles.label}>Tipo do item</Text>
           <TextInput
@@ -112,17 +150,34 @@ export default function TelaCadastroDoacao() {
           {erroQuantidade ? <Text style={styles.erro}>{erroQuantidade}</Text> : null}
 
           <Text style={styles.label}>Ponto de destino</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Mercado Central"
-            value={pontoDestino}
-            onChangeText={setPontoDestino}
-          />
+          <View style={styles.pontosContainer}>
+            {pontos.map((ponto) => (
+              <TouchableOpacity
+                key={ponto.id}
+                style={[
+                  styles.pontoBtn,
+                  pontoDestino === ponto.nome && styles.pontoSelecionado,
+                ]}
+                onPress={() => setPontoDestino(ponto.nome)}
+              >
+                <Text
+                  style={[
+                    styles.pontoTexto,
+                    pontoDestino === ponto.nome && styles.pontoTextoSelecionado,
+                  ]}
+                >
+                  {ponto.nome}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-          <TouchableOpacity style={styles.botao} onPress={handleSalvar}>
-            <Text style={styles.botaoTexto}>
-              {editando ? 'Salvar Alterações' : 'Cadastrar Doação'}
-            </Text>
+          <TouchableOpacity style={styles.botao} onPress={handleSalvar} disabled={salvando}>
+            {salvando ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.botaoTexto}>Cadastrar Doação</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -138,6 +193,18 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  centro: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  erroCarregar: {
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+  },
   container: {
     padding: 16,
   },
@@ -145,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 24,
+    color: '#1B3A5C',
   },
   label: {
     fontSize: 16,
@@ -169,6 +237,31 @@ const styles = StyleSheet.create({
     color: '#D32F2F',
     fontSize: 13,
     marginBottom: 16,
+  },
+  pontosContainer: {
+    gap: 8,
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  pontoBtn: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#CCCCCC',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  pontoSelecionado: {
+    borderColor: '#1B3A5C',
+    backgroundColor: '#1B3A5C',
+  },
+  pontoTexto: {
+    fontSize: 15,
+    color: '#555555',
+  },
+  pontoTextoSelecionado: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   botao: {
     backgroundColor: '#1B3A5C',

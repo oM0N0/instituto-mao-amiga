@@ -1,46 +1,44 @@
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { carregarDoacoes, excluirDoacao } from '../services/doacoesStorage';
+import { statusDoErro } from '../services/api';
+import { buscarDoacaoPorId } from '../services/doacoesService';
 import type { Doacao } from '../types/doacao';
+import { formatarData } from '../utils/formatarData';
 
 export default function TelaDetalheDoacao() {
-  const { id } = useLocalSearchParams();
-  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [doacao, setDoacao] = useState<Doacao | null>(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
 
-  useFocusEffect(
-    useCallback(() => {
-      carregarDoacoes().then((lista) => {
-        const encontrada = lista.find((d) => d.id === id);
-        setDoacao(encontrada ?? null);
-      });
-    }, [id])
-  );
+  // a navegação passa só o id; os dados da doação vêm da API
+  useEffect(() => {
+    buscarDoacaoPorId(id)
+      .then(setDoacao)
+      .catch((e) => {
+        if (statusDoErro(e) === 404) {
+          setErro('Doação não encontrada.');
+        } else {
+          setErro('Erro ao carregar a doação. Verifique se a API está ligada.');
+        }
+      })
+      .finally(() => setCarregando(false));
+  }, [id]);
 
-  function handleExcluir() {
-    Alert.alert(
-      'Excluir doação',
-      'Tem certeza que deseja excluir esta doação?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            await excluirDoacao(id as string);
-            router.back();
-          },
-        },
-      ]
+  if (carregando) {
+    return (
+      <SafeAreaView style={styles.centro} edges={['bottom', 'left', 'right']}>
+        <ActivityIndicator size="large" color="#1B3A5C" />
+      </SafeAreaView>
     );
   }
 
-  if (!doacao) {
+  if (erro || !doacao) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <Text>Doação não encontrada.</Text>
+      <SafeAreaView style={styles.centro} edges={['bottom', 'left', 'right']}>
+        <Text style={styles.erroTexto}>{erro || 'Doação não encontrada.'}</Text>
       </SafeAreaView>
     );
   }
@@ -58,18 +56,9 @@ export default function TelaDetalheDoacao() {
         <Text style={styles.valor}>{doacao.pontoDestino}</Text>
 
         <Text style={styles.label}>Data do registro</Text>
-        <Text style={styles.valor}>{doacao.criadoEm || 'Sem data registrada'}</Text>
-
-        <TouchableOpacity
-          style={styles.botaoEditar}
-          onPress={() => router.push({ pathname: '/doacao', params: { id: doacao.id } })}
-        >
-          <Text style={styles.botaoEditarTexto}>Editar Doação</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.botaoExcluir} onPress={handleExcluir}>
-          <Text style={styles.botaoExcluirTexto}>Excluir Doação</Text>
-        </TouchableOpacity>
+        <Text style={styles.valor}>
+          {doacao.criadoEm ? formatarData(doacao.criadoEm) : 'Sem data registrada'}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -80,44 +69,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  centro: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  erroTexto: {
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+  },
   container: {
     padding: 16,
     paddingBottom: 32,
   },
   label: {
     fontSize: 14,
-    color: '#999999',
+    color: '#888888',
     marginTop: 16,
   },
   valor: {
     fontSize: 18,
     color: '#1B3A5C',
     marginTop: 4,
-  },
-  botaoEditar: {
-    backgroundColor: '#1B3A5C',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 32,
-    minHeight: 44,
-  },
-  botaoEditarTexto: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  botaoExcluir: {
-    backgroundColor: '#D32F2F',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 12,
-    minHeight: 44,
-  },
-  botaoExcluirTexto: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

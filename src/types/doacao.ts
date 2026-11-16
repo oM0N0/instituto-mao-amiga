@@ -5,3 +5,9 @@ export type Doacao = {
   pontoDestino: string;
   criadoEm: string;
 };
+
+export type DoacaoRequest = {
+  tipoItem: string;
+  quantidade: number;
+  pontoDestino: string;
+};
