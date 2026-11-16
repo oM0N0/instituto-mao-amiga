@@ -18,6 +18,14 @@ A partir da N2, pontos de coleta e doações ficam numa API Spring Boot, que est
 - Console do H2: http://localhost:8080/h2-console (JDBC URL `jdbc:h2:file:./data/instituto`, usuário `sa`, sem senha).
 - O banco fica gravado em arquivo na pasta `api/data/`. Na primeira execução são cadastrados 25 pontos em Goiânia; nas próximas a carga não duplica. Para voltar ao estado inicial, apague a pasta `api/data/` com a API desligada.
 
+### App
+
+1. `npm install`
+2. Em `src/services/api.ts`, trocar o IP da constante `API_URL` pelo IP do computador que está rodando a API. No Windows, o IP aparece no comando `ipconfig` ("Endereço IPv4"). O celular precisa estar na mesma rede Wi-Fi que o computador.
+3. `npx expo start` e abrir no Expo Go.
+
+O app acessa a API pelo IP do computador na rede local (não usa `localhost`), por isso funciona no celular.
+
 ## API: pontos de coleta
 
 | Método | URL | O que faz | Respostas |
