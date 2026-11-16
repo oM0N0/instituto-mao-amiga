@@ -9,7 +9,7 @@ A partir da N2, pontos de coleta e doações ficam numa API Spring Boot, que est
 
 ### API (pasta `api/`)
 
-- Java 17 ou superior.
+- Java 17 ou superior (testado com Java 17.0.20, Temurin).
 - Dentro da pasta `api/`, rodar:
   - Windows (PowerShell): `.\mvnw spring-boot:run`
   - Linux/Mac: `./mvnw spring-boot:run`
@@ -398,3 +398,22 @@ Corpo do POST e do PUT:
 **GET `/api/v1/doacoes/{id}` com id que não existe (404)**
 
 ![GET /api/v1/doacoes/{id} inexistente](docs/prints/doacoes/07-get-id-inexistente-404.png)
+
+## Roteiro de demonstração (até 3 minutos)
+
+1. **API (30s)**: no Swagger, fazer um POST de ponto com o `nome` vazio e mostrar o **400**; fazer um GET de ponto com um id que não existe (ex.: `00000000-0000-0000-0000-000000000000`) e mostrar o **404**.
+2. **Buscar (15s)**: no app, digitar `oeste` na busca e tocar em Buscar. Limpar a busca e rolar a lista para mostrar a rolagem infinita carregando mais pontos.
+3. **Cadastrar ponto (20s)**: "+ Novo Ponto", preencher, escolher o tipo e cadastrar. Buscar pelo nome para mostrar que ele está na lista.
+4. **Editar ponto (20s)**: abrir o ponto, "Editar", mudar o horário, "Salvar alterações". O detalhe já mostra o valor novo.
+5. **Excluir ponto (15s)**: "Excluir", tocar em Cancelar primeiro, depois Excluir de verdade. O ponto some da lista.
+6. **Favoritar (20s)**: tocar no ♡ de dois pontos, abrir "♥ Meus Pontos", desmarcar um deles.
+7. **Cadastrar doação (20s)**: "+ Nova Doação", tipo `Arroz`, quantidade `20`, escolher o ponto de destino e cadastrar. Abrir o histórico: ela aparece no topo.
+8. **Editar doação (20s)**: tocar na doação, "Editar", mudar a quantidade, "Salvar alterações". Detalhe e histórico mostram o valor novo e a data de cadastro continua a mesma.
+9. **Excluir doação (15s)**: no detalhe, "Excluir", confirmar. Volta para o histórico e a doação sumiu.
+
+## Decisões técnicas
+
+- **Favoritos no aparelho, pontos e doações no servidor.** Pontos e doações são dados do instituto: todos que usam o app precisam ver a mesma coisa, então ficam na API. Favoritos são uma escolha de cada pessoa, por isso ficam no AsyncStorage do próprio celular. Guardo só os ids e busco os dados atualizados na API; assim, se um ponto for editado, o favorito mostra os dados novos, e se for excluído ele simplesmente fica de fora.
+- **DTOs na API.** O controller recebe um `RequestDTO` (com as validações) e devolve um `ResponseDTO`, nunca a entidade. Assim o app não consegue mandar um `id` ou uma data de cadastro, e a validação fica num lugar só.
+- **Data de cadastro no servidor.** O `criadoEm` é preenchido no service com `LocalDateTime.now()`. Se viesse do app, cada celular poderia mandar uma data diferente (ou errada).
+- **Rede em camadas no app.** Só `src/services/api.ts` chama `fetch`; as telas usam `pontosService` e `doacoesService`. Se o IP da API mudar, troca em um lugar só.

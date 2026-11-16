@@ -10,21 +10,38 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { carregarFavoritos, toggleFavorito } from '../services/favoritosStorage';
 import { buscarPagina } from '../services/pontosService';
 import type { Ponto } from '../types/ponto';
 
-function PontoItem({ ponto, onPress }: { ponto: Ponto; onPress: () => void }) {
+function PontoItem({
+  ponto,
+  onPress,
+  favorito,
+  onToggleFavorito,
+}: {
+  ponto: Ponto;
+  onPress: () => void;
+  favorito: boolean;
+  onToggleFavorito: () => void;
+}) {
   return (
-    <TouchableOpacity style={styles.item} onPress={onPress}>
-      <Text style={styles.nome}>{ponto.nome}</Text>
-      <Text style={styles.endereco}>{ponto.endereco} - {ponto.bairro}</Text>
-      <Text style={styles.tipo}>{ponto.tipo}</Text>
-    </TouchableOpacity>
+    <View style={styles.item}>
+      <TouchableOpacity style={styles.itemInfo} onPress={onPress}>
+        <Text style={styles.nome}>{ponto.nome}</Text>
+        <Text style={styles.endereco}>{ponto.endereco} - {ponto.bairro}</Text>
+        <Text style={styles.tipo}>{ponto.tipo}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.botaoFavorito} onPress={onToggleFavorito}>
+        <Text style={styles.coracaoTexto}>{favorito ? '♥' : '♡'}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 export default function TelaListaPontos() {
   const [pontos, setPontos] = useState<Ponto[]>([]);
+  const [favoritos, setFavoritos] = useState<string[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [carregandoMais, setCarregandoMais] = useState(false);
   const [erro, setErro] = useState('');
@@ -43,11 +60,12 @@ export default function TelaListaPontos() {
     setErro('');
     filtroRef.current = busca;
     setBuscaAtiva(busca);
-    buscarPagina(busca, 0)
-      .then((pagina) => {
+    Promise.all([buscarPagina(busca, 0), carregarFavoritos()])
+      .then(([pagina, favs]) => {
         setPontos(pagina.content);
         paginaRef.current = 0;
         totalPaginasRef.current = pagina.page.totalPages;
+        setFavoritos(favs);
       })
       .catch(() => setErro('Não foi possível carregar os pontos. Verifique se a API está ligada.'))
       .finally(() => setCarregando(false));
@@ -58,6 +76,11 @@ export default function TelaListaPontos() {
       carregarPrimeiraPagina(filtroRef.current);
     }, [carregarPrimeiraPagina])
   );
+
+  const handleToggleFavorito = async (id: string) => {
+    const novaLista = await toggleFavorito(id);
+    setFavoritos(novaLista);
+  };
 
   const carregarMais = () => {
     const proximaPagina = paginaRef.current + 1;
@@ -133,6 +156,8 @@ export default function TelaListaPontos() {
           <PontoItem
             ponto={ponto}
             onPress={() => router.push({ pathname: '/ponto', params: { id: ponto.id } })}
+            favorito={favoritos.includes(ponto.id)}
+            onToggleFavorito={() => handleToggleFavorito(ponto.id)}
           />
         )}
         onEndReached={carregarMais}
@@ -156,6 +181,12 @@ export default function TelaListaPontos() {
                 onPress={() => router.push('/historico')}
               >
                 <Text style={styles.botaoTexto}>Histórico de Doações</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.botao, styles.botaoFavoritos]}
+                onPress={() => router.push('/favoritos')}
+              >
+                <Text style={styles.botaoTexto}>♥ Meus Pontos</Text>
               </TouchableOpacity>
             </View>
           )
@@ -229,10 +260,25 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   item: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+  },
+  itemInfo: {
+    flex: 1,
+  },
+  botaoFavorito: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  coracaoTexto: {
+    fontSize: 24,
+    color: '#D32F2F',
   },
   nome: {
     fontSize: 18,
@@ -267,6 +313,9 @@ const styles = StyleSheet.create({
   },
   botaoHistorico: {
     backgroundColor: '#2E7D32',
+  },
+  botaoFavoritos: {
+    backgroundColor: '#D32F2F',
   },
   botaoTexto: {
     color: '#FFFFFF',
