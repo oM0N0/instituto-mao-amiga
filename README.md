@@ -59,11 +59,263 @@ Se algum campo vier vazio, a API responde 400 com a mensagem de cada campo e nã
 - Padrão: 10 itens por página, ordenados por nome. `sort=bairro,asc` na URL troca a ordem.
 - A resposta vem no formato `content` + `page`.
 
-Chamadas de exemplo:
+Chamadas de exemplo (respostas reais da API rodando com a carga inicial):
 
-1. Sem filtro: `http://localhost:8080/api/v1/pontos/filtro`
-2. Filtrando por bairro: `http://localhost:8080/api/v1/pontos/filtro?filtro=oeste`
-3. Segunda página: `http://localhost:8080/api/v1/pontos/filtro?page=1`
+### 1. Sem filtro
+
+`GET http://localhost:8080/api/v1/pontos/filtro`
+
+Primeira página com 10 pontos em ordem alfabética; `totalElements: 25` e `totalPages: 3`.
+
+<details>
+<summary>Resposta completa</summary>
+
+```json
+{
+  "content": [
+    {
+      "id": "2b3306d0-29da-442d-a57c-23bbe70b186d",
+      "nome": "Associação Jardim Novo Mundo",
+      "endereco": "Rua NM-5, 45",
+      "bairro": "Jardim Novo Mundo",
+      "horario": "Seg a Sex, 9h às 15h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "d4fbda68-62fc-4f92-969c-c5f6328b3c75",
+      "nome": "Associação Parque Atheneu",
+      "endereco": "Av. Rio Verde, 2800",
+      "bairro": "Parque Atheneu",
+      "horario": "Ter a Sáb, 8h às 14h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "1d82390b-7fb9-463d-8db2-34a9e9b7cab4",
+      "nome": "Associação Setor Pedro Ludovico",
+      "endereco": "Rua 1040, 55",
+      "bairro": "Setor Pedro Ludovico",
+      "horario": "Ter e Qui, 9h às 14h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "2a0210e9-1afc-4de9-9f34-19b7d21446ff",
+      "nome": "Associação Vila Redenção",
+      "endereco": "Rua VR-8, 60",
+      "bairro": "Vila Redenção",
+      "horario": "Seg, Qua e Sex, 8h às 14h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "76f91752-358c-41f5-9410-e5cce2ee579c",
+      "nome": "CRAS Leste Universitário",
+      "endereco": "Rua 230, 120",
+      "bairro": "Setor Leste Universitário",
+      "horario": "Seg a Sex, 8h às 17h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "c07003ea-41e3-4917-9807-c715a25a518d",
+      "nome": "CRAS Sudoeste",
+      "endereco": "Av. Rio Verde, 5000",
+      "bairro": "Setor Sudoeste",
+      "horario": "Seg a Sex, 8h às 17h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "22bb18e5-b804-45bd-8078-4b4a29ed2564",
+      "nome": "Centro Comunitário Parque Amazônia",
+      "endereco": "Rua PA-12, 88",
+      "bairro": "Parque Amazônia",
+      "horario": "Qua e Sex, 9h às 13h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "4dd09315-be9e-4803-b3f6-aedf0f015e06",
+      "nome": "Centro Comunitário Vila Nova",
+      "endereco": "Rua VN-7, Quadra 15",
+      "bairro": "Vila Nova",
+      "horario": "Seg, Qua e Sex, 9h às 16h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "848798b0-191f-4081-b07f-ff15c4ce2327",
+      "nome": "Centro Espírita Setor Oeste",
+      "endereco": "Rua 9, 100",
+      "bairro": "Setor Oeste",
+      "horario": "Qua e Sáb, 14h às 17h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "db0458db-51c7-4497-bb98-179a71d40eba",
+      "nome": "Centro Social Jardim Guanabara",
+      "endereco": "Rua JG-3, 90",
+      "bairro": "Jardim Guanabara",
+      "horario": "Seg, Qua e Sex, 8h às 12h",
+      "tipo": "distribuição"
+    }
+  ],
+  "page": {
+    "size": 10,
+    "number": 0,
+    "totalElements": 25,
+    "totalPages": 3
+  }
+}
+```
+
+</details>
+
+### 2. Filtrando por bairro
+
+`GET http://localhost:8080/api/v1/pontos/filtro?filtro=oeste`
+
+Encontra os pontos dos bairros Setor Oeste e Setor Sudoeste; `totalElements: 3`.
+
+<details>
+<summary>Resposta completa</summary>
+
+```json
+{
+  "content": [
+    {
+      "id": "c07003ea-41e3-4917-9807-c715a25a518d",
+      "nome": "CRAS Sudoeste",
+      "endereco": "Av. Rio Verde, 5000",
+      "bairro": "Setor Sudoeste",
+      "horario": "Seg a Sex, 8h às 17h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "848798b0-191f-4081-b07f-ff15c4ce2327",
+      "nome": "Centro Espírita Setor Oeste",
+      "endereco": "Rua 9, 100",
+      "bairro": "Setor Oeste",
+      "horario": "Qua e Sáb, 14h às 17h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "186e2f7b-b3c8-4b0e-ad06-f0ee46f8aa80",
+      "nome": "Paróquia São José",
+      "endereco": "Rua 3, 250",
+      "bairro": "Setor Oeste",
+      "horario": "Ter e Qui, 14h às 17h",
+      "tipo": "distribuição"
+    }
+  ],
+  "page": {
+    "size": 10,
+    "number": 0,
+    "totalElements": 3,
+    "totalPages": 1
+  }
+}
+```
+
+</details>
+
+### 3. Segunda página
+
+`GET http://localhost:8080/api/v1/pontos/filtro?page=1`
+
+Os próximos 10 pontos, continuando a ordem alfabética; `number: 1`.
+
+<details>
+<summary>Resposta completa</summary>
+
+```json
+{
+  "content": [
+    {
+      "id": "046f7a82-562b-46d6-ac4a-f1eb4a7e1f42",
+      "nome": "Escola Estadual do Setor Coimbra",
+      "endereco": "Rua C-180, 200",
+      "bairro": "Setor Coimbra",
+      "horario": "Seg a Sex, 7h às 11h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "1526a24e-663b-422c-ad18-85d0e2ac1b84",
+      "nome": "Escola Municipal Esperança",
+      "endereco": "Av. Goiás, 1500",
+      "bairro": "Setor Central",
+      "horario": "Seg a Sex, 7h às 12h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "96d1f443-6472-4809-8599-9c47e9318cd1",
+      "nome": "Feira do Setor Campinas",
+      "endereco": "Praça Campinas",
+      "bairro": "Setor Campinas",
+      "horario": "Dom, 6h às 12h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "df42bbc1-3052-407f-ab5f-ae1f575797d4",
+      "nome": "Feira do Setor Sul",
+      "endereco": "Praça do Cruzeiro",
+      "bairro": "Setor Sul",
+      "horario": "Sáb e Dom, 6h às 12h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "b7959bee-53a3-462e-bc0b-e92ff636b2ac",
+      "nome": "Igreja Jardim América",
+      "endereco": "Rua C-150, 78",
+      "bairro": "Jardim América",
+      "horario": "Qua e Sex, 10h às 15h",
+      "tipo": "distribuição"
+    },
+    {
+      "id": "d64d2aa5-66ec-4fac-9b0f-70981d62829d",
+      "nome": "Igreja Setor Universitário",
+      "endereco": "Praça Universitária, 10",
+      "bairro": "Setor Universitário",
+      "horario": "Ter e Qui, 10h às 14h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "a4f8ef87-ba0e-4582-8373-1ede728eba7a",
+      "nome": "Mercado Central de Goiânia",
+      "endereco": "Av. Anhanguera, 1000",
+      "bairro": "Setor Central",
+      "horario": "Seg a Sáb, 7h às 18h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "db18711c-db80-4577-8640-e68b65950f36",
+      "nome": "Mercado Setor Gentil Meireles",
+      "endereco": "Rua GM-1, 300",
+      "bairro": "Setor Gentil Meireles",
+      "horario": "Seg a Sáb, 7h às 18h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "3751cb3c-9344-493f-ad10-0eae1d87c7c6",
+      "nome": "Mercado do Setor Marista",
+      "endereco": "Av. 136, 800",
+      "bairro": "Setor Marista",
+      "horario": "Seg a Sáb, 8h às 19h",
+      "tipo": "coleta"
+    },
+    {
+      "id": "b8057120-90e5-4fc2-ae0f-65e0342b9322",
+      "nome": "ONG Mãos Solidárias",
+      "endereco": "Rua 15, 330",
+      "bairro": "Setor Norte Ferroviário",
+      "horario": "Ter a Sex, 10h às 16h",
+      "tipo": "distribuição"
+    }
+  ],
+  "page": {
+    "size": 10,
+    "number": 1,
+    "totalElements": 25,
+    "totalPages": 3
+  }
+}
+```
+
+</details>
 
 ## API: doações
 
