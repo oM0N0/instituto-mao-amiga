@@ -1,30 +1,61 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { statusDoErro } from '../services/api';
-import { buscarPontoPorId } from '../services/pontosService';
+import { buscarPontoPorId, excluirPonto } from '../services/pontosService';
 import type { Ponto } from '../types/ponto';
 
 export default function TelaDetalhePonto() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [ponto, setPonto] = useState<Ponto | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
-  // a navegação passa só o id; os dados do ponto vêm da API
-  useEffect(() => {
-    buscarPontoPorId(id)
-      .then(setPonto)
-      .catch((e) => {
-        if (statusDoErro(e) === 404) {
-          setErro('Ponto não encontrado.');
-        } else {
-          setErro('Erro ao carregar o ponto. Verifique se a API está ligada.');
-        }
-      })
-      .finally(() => setCarregando(false));
-  }, [id]);
+  // recarrega sempre que a tela aparece, para mostrar os valores novos depois de editar
+  useFocusEffect(
+    useCallback(() => {
+      setCarregando(true);
+      setErro('');
+      buscarPontoPorId(id)
+        .then(setPonto)
+        .catch((e) => {
+          if (statusDoErro(e) === 404) {
+            setErro('Ponto não encontrado.');
+          } else {
+            setErro('Erro ao carregar o ponto. Verifique se a API está ligada.');
+          }
+        })
+        .finally(() => setCarregando(false));
+    }, [id])
+  );
+
+  const confirmarExclusao = () => {
+    Alert.alert('Excluir ponto', 'Tem certeza que deseja excluir este ponto?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await excluirPonto(id);
+            router.back();
+          } catch {
+            Alert.alert('Erro', 'Não foi possível excluir o ponto. Verifique se a API está ligada.');
+          }
+        },
+      },
+    ]);
+  };
 
   if (carregando) {
     return (
@@ -54,6 +85,18 @@ export default function TelaDetalhePonto() {
         <Text style={styles.info}>{ponto.horario}</Text>
         <Text style={styles.label}>Tipo</Text>
         <Text style={styles.info}>{ponto.tipo}</Text>
+
+        <View style={styles.botoes}>
+          <TouchableOpacity
+            style={styles.botaoEditar}
+            onPress={() => router.push({ pathname: '/form-ponto', params: { id: ponto.id } })}
+          >
+            <Text style={styles.botaoTexto}>Editar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarExclusao}>
+            <Text style={styles.botaoTexto}>Excluir</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -93,5 +136,31 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 18,
     marginBottom: 4,
+  },
+  botoes: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  botaoEditar: {
+    flex: 1,
+    backgroundColor: '#1B3A5C',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  botaoExcluir: {
+    flex: 1,
+    backgroundColor: '#D32F2F',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  botaoTexto: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

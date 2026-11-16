@@ -142,6 +142,9 @@ export default function TelaListaPontos() {
             <ActivityIndicator size="small" color="#1B3A5C" style={styles.carregandoMais} />
           ) : (
             <View>
+              <TouchableOpacity style={styles.botao} onPress={() => router.push('/form-ponto')}>
+                <Text style={styles.botaoTexto}>+ Novo Ponto</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.botao, styles.botaoDoacao]}
                 onPress={() => router.push('/doacao')}
