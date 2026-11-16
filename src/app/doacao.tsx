@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { statusDoErro } from '../services/api';
-import { cadastrarDoacao } from '../services/doacoesService';
+import { buscarDoacaoPorId, cadastrarDoacao, editarDoacao } from '../services/doacoesService';
 import { listarPontos } from '../services/pontosService';
 import type { Ponto } from '../types/ponto';
 
@@ -25,6 +25,8 @@ function quantidadeValida(valor: string): boolean {
 }
 
 export default function TelaCadastroDoacao() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const editando = !!id;
   const router = useRouter();
 
   const [tipoItem, setTipoItem] = useState('');
@@ -41,12 +43,23 @@ export default function TelaCadastroDoacao() {
       // o ponto de destino é escolhido entre os pontos da API
       const listaPontos = await listarPontos();
       setPontos(listaPontos);
-    } catch {
-      setErroCarregar('Não foi possível carregar os pontos. Verifique se a API está ligada.');
+
+      if (id) {
+        const doacao = await buscarDoacaoPorId(id);
+        setTipoItem(doacao.tipoItem);
+        setQuantidade(String(doacao.quantidade));
+        setPontoDestino(doacao.pontoDestino);
+      }
+    } catch (e) {
+      if (statusDoErro(e) === 404) {
+        setErroCarregar('Doação não encontrada.');
+      } else {
+        setErroCarregar('Não foi possível carregar os dados. Verifique se a API está ligada.');
+      }
     } finally {
       setCarregando(false);
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     carregar();
@@ -90,11 +103,18 @@ export default function TelaCadastroDoacao() {
 
     // em caso de erro os campos continuam preenchidos, porque o estado não é limpo
     try {
-      await cadastrarDoacao(dados);
+      if (id) {
+        await editarDoacao(id, dados);
+      } else {
+        await cadastrarDoacao(dados);
+      }
       router.back();
     } catch (e) {
-      if (statusDoErro(e) === 400) {
+      const status = statusDoErro(e);
+      if (status === 400) {
         Alert.alert('Erro', 'A API recusou os dados. Verifique os campos.');
+      } else if (status === 404) {
+        Alert.alert('Erro', 'Esta doação não existe mais.');
       } else {
         Alert.alert('Erro', 'Não foi possível salvar. Verifique se a API está ligada.');
       }
@@ -129,7 +149,9 @@ export default function TelaCadastroDoacao() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.titulo}>Cadastrar Doação</Text>
+          <Text style={styles.titulo}>
+            {editando ? 'Editar Doação' : 'Cadastrar Doação'}
+          </Text>
 
           <Text style={styles.label}>Tipo do item</Text>
           <TextInput
@@ -176,7 +198,9 @@ export default function TelaCadastroDoacao() {
             {salvando ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.botaoTexto}>Cadastrar Doação</Text>
+              <Text style={styles.botaoTexto}>
+                {editando ? 'Salvar alterações' : 'Cadastrar Doação'}
+              </Text>
             )}
           </TouchableOpacity>
         </ScrollView>

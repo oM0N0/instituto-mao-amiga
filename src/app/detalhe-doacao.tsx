@@ -1,31 +1,62 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { statusDoErro } from '../services/api';
-import { buscarDoacaoPorId } from '../services/doacoesService';
+import { buscarDoacaoPorId, excluirDoacao } from '../services/doacoesService';
 import type { Doacao } from '../types/doacao';
 import { formatarData } from '../utils/formatarData';
 
 export default function TelaDetalheDoacao() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [doacao, setDoacao] = useState<Doacao | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
 
-  // a navegação passa só o id; os dados da doação vêm da API
-  useEffect(() => {
-    buscarDoacaoPorId(id)
-      .then(setDoacao)
-      .catch((e) => {
-        if (statusDoErro(e) === 404) {
-          setErro('Doação não encontrada.');
-        } else {
-          setErro('Erro ao carregar a doação. Verifique se a API está ligada.');
-        }
-      })
-      .finally(() => setCarregando(false));
-  }, [id]);
+  // recarrega sempre que a tela aparece, para mostrar os valores novos depois de editar
+  useFocusEffect(
+    useCallback(() => {
+      setCarregando(true);
+      setErro('');
+      buscarDoacaoPorId(id)
+        .then(setDoacao)
+        .catch((e) => {
+          if (statusDoErro(e) === 404) {
+            setErro('Doação não encontrada.');
+          } else {
+            setErro('Erro ao carregar a doação. Verifique se a API está ligada.');
+          }
+        })
+        .finally(() => setCarregando(false));
+    }, [id])
+  );
+
+  function handleExcluir() {
+    Alert.alert('Excluir doação', 'Tem certeza que deseja excluir esta doação?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await excluirDoacao(id);
+            router.back();
+          } catch {
+            Alert.alert('Erro', 'Não foi possível excluir a doação. Verifique se a API está ligada.');
+          }
+        },
+      },
+    ]);
+  }
 
   if (carregando) {
     return (
@@ -59,6 +90,19 @@ export default function TelaDetalheDoacao() {
         <Text style={styles.valor}>
           {doacao.criadoEm ? formatarData(doacao.criadoEm) : 'Sem data registrada'}
         </Text>
+
+        <View style={styles.botoes}>
+          <TouchableOpacity
+            style={styles.botaoEditar}
+            onPress={() => router.push({ pathname: '/doacao', params: { id: doacao.id } })}
+          >
+            <Text style={styles.botaoTexto}>Editar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.botaoExcluir} onPress={handleExcluir}>
+            <Text style={styles.botaoTexto}>Excluir</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -94,5 +138,31 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#1B3A5C',
     marginTop: 4,
+  },
+  botoes: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 32,
+  },
+  botaoEditar: {
+    flex: 1,
+    backgroundColor: '#1B3A5C',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  botaoExcluir: {
+    flex: 1,
+    backgroundColor: '#D32F2F',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    minHeight: 44,
+  },
+  botaoTexto: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
