@@ -50,6 +50,36 @@ Corpo do POST e do PUT (todos os campos são obrigatórios; `tipo` é `coleta` o
 
 Se algum campo vier vazio, a API responde 400 com a mensagem de cada campo e não grava nada. Id que não existe responde 404.
 
+### Prints do Swagger
+
+**GET `/api/v1/pontos`: lista todos (200)**
+
+![GET /api/v1/pontos](docs/prints/pontos/01-get-lista-200.png)
+
+**GET `/api/v1/pontos/{id}`: busca o Mercado Central de Goiânia (200)**
+
+![GET /api/v1/pontos/{id}](docs/prints/pontos/02-get-por-id-200.png)
+
+**POST `/api/v1/pontos`: cadastra o "Ponto Teste" (201)**
+
+![POST /api/v1/pontos](docs/prints/pontos/03-post-201.png)
+
+**PUT `/api/v1/pontos/{id}`: muda o horário do "Ponto Teste" (200)**
+
+![PUT /api/v1/pontos/{id}](docs/prints/pontos/04-put-200.png)
+
+**DELETE `/api/v1/pontos/{id}`: exclui o "Ponto Teste" (204)**
+
+![DELETE /api/v1/pontos/{id}](docs/prints/pontos/05-delete-204.png)
+
+**POST `/api/v1/pontos` com `nome` vazio (400)**
+
+![POST /api/v1/pontos com nome vazio (400)](docs/prints/pontos/06-post-nome-vazio-400.png)
+
+**GET `/api/v1/pontos/{id}` com id que não existe (404)**
+
+![GET /api/v1/pontos/{id} com id que não existe (404)](docs/prints/pontos/07-get-id-inexistente-404.png)
+
 ## Busca paginada de pontos
 
 `GET http://localhost:8080/api/v1/pontos/filtro?filtro=...&page=0&size=10`
