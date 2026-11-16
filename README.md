@@ -16,7 +16,7 @@ A partir da N2, pontos de coleta e doações ficam numa API Spring Boot, que est
 - A API sobe em `http://localhost:8080`.
 - Swagger: http://localhost:8080/swagger-ui/index.html
 - Console do H2: http://localhost:8080/h2-console (JDBC URL `jdbc:h2:file:./data/instituto`, usuário `sa`, sem senha).
-- O banco fica gravado em arquivo na pasta `api/data/`. Na primeira execução são cadastrados 8 pontos em Goiânia; nas próximas a carga não duplica.
+- O banco fica gravado em arquivo na pasta `api/data/`. Na primeira execução são cadastrados 25 pontos em Goiânia; nas próximas a carga não duplica. Para voltar ao estado inicial, apague a pasta `api/data/` com a API desligada.
 
 ## API: pontos de coleta
 
@@ -41,3 +41,18 @@ Corpo do POST e do PUT (todos os campos são obrigatórios; `tipo` é `coleta` o
 ```
 
 Se algum campo vier vazio, a API responde 400 com a mensagem de cada campo e não grava nada. Id que não existe responde 404.
+
+## Busca paginada de pontos
+
+`GET http://localhost:8080/api/v1/pontos/filtro?filtro=...&page=0&size=10`
+
+- Procura o texto no nome ou no bairro, sem diferenciar maiúsculas.
+- Sem `filtro`, devolve todos os pontos paginados.
+- Padrão: 10 itens por página, ordenados por nome. `sort=bairro,asc` na URL troca a ordem.
+- A resposta vem no formato `content` + `page`.
+
+Chamadas de exemplo:
+
+1. Sem filtro: `http://localhost:8080/api/v1/pontos/filtro`
+2. Filtrando por bairro: `http://localhost:8080/api/v1/pontos/filtro?filtro=oeste`
+3. Segunda página: `http://localhost:8080/api/v1/pontos/filtro?page=1`

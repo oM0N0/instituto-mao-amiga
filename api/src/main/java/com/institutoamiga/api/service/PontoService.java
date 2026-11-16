@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.institutoamiga.api.dto.PontoRequestDTO;
@@ -22,6 +24,10 @@ public class PontoService {
 
     public List<PontoResponseDTO> listarTodos() {
         return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    public Page<PontoResponseDTO> filtrar(String filtro, Pageable pageable) {
+        return repository.filtrar(filtro, pageable).map(this::toResponse);
     }
 
     public PontoResponseDTO buscarPorId(UUID id) {
