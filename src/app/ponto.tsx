@@ -2,7 +2,6 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { statusDoErro } from '../services/api';
 import { buscarPontoPorId, excluirPonto } from '../services/pontosService';
+import { avisar, confirmarExclusao } from '../utils/dialogos';
 import type { Ponto } from '../types/ponto';
 
 export default function TelaDetalhePonto() {
@@ -39,22 +39,15 @@ export default function TelaDetalhePonto() {
     }, [id])
   );
 
-  const confirmarExclusao = () => {
-    Alert.alert('Excluir ponto', 'Tem certeza que deseja excluir este ponto?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await excluirPonto(id);
-            router.back();
-          } catch {
-            Alert.alert('Erro', 'Não foi possível excluir o ponto. Verifique se a API está ligada.');
-          }
-        },
-      },
-    ]);
+  const handleExcluir = () => {
+    confirmarExclusao('Excluir ponto', 'Tem certeza que deseja excluir este ponto?', async () => {
+      try {
+        await excluirPonto(id);
+        router.back();
+      } catch {
+        avisar('Erro', 'Não foi possível excluir o ponto. Verifique se a API está ligada.');
+      }
+    });
   };
 
   if (carregando) {
@@ -93,7 +86,7 @@ export default function TelaDetalhePonto() {
           >
             <Text style={styles.botaoTexto}>Editar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarExclusao}>
+          <TouchableOpacity style={styles.botaoExcluir} onPress={handleExcluir}>
             <Text style={styles.botaoTexto}>Excluir</Text>
           </TouchableOpacity>
         </View>

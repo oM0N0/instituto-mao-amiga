@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,6 +26,8 @@ export default function TelaFormPonto() {
   const [carregando, setCarregando] = useState(editando);
   const [erroCarregar, setErroCarregar] = useState('');
   const [salvando, setSalvando] = useState(false);
+  // mensagem mostrada na própria tela, acima do botão (funciona no celular e no navegador)
+  const [mensagem, setMensagem] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -50,10 +51,11 @@ export default function TelaFormPonto() {
 
   const salvar = async () => {
     if (!nome.trim() || !endereco.trim() || !bairro.trim() || !horario.trim() || !tipo) {
-      Alert.alert('Atenção', 'Preencha todos os campos.');
+      setMensagem('Preencha todos os campos e escolha o tipo.');
       return;
     }
 
+    setMensagem('');
     setSalvando(true);
     const dados = {
       nome: nome.trim(),
@@ -74,11 +76,11 @@ export default function TelaFormPonto() {
     } catch (e) {
       const status = statusDoErro(e);
       if (status === 400) {
-        Alert.alert('Erro', 'A API recusou os dados. Verifique os campos.');
+        setMensagem('A API recusou os dados. Verifique os campos.');
       } else if (status === 404) {
-        Alert.alert('Erro', 'Este ponto não existe mais.');
+        setMensagem('Este ponto não existe mais.');
       } else {
-        Alert.alert('Erro', 'Não foi possível salvar. Verifique se a API está ligada.');
+        setMensagem('Não foi possível salvar. Verifique se a API está ligada.');
       }
     } finally {
       setSalvando(false);
@@ -105,16 +107,16 @@ export default function TelaFormPonto() {
     <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome do ponto" />
+        <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome do ponto" placeholderTextColor="#AAAAAA" />
 
         <Text style={styles.label}>Endereço</Text>
-        <TextInput style={styles.input} value={endereco} onChangeText={setEndereco} placeholder="Endereço" />
+        <TextInput style={styles.input} value={endereco} onChangeText={setEndereco} placeholder="Endereço" placeholderTextColor="#AAAAAA" />
 
         <Text style={styles.label}>Bairro</Text>
-        <TextInput style={styles.input} value={bairro} onChangeText={setBairro} placeholder="Bairro" />
+        <TextInput style={styles.input} value={bairro} onChangeText={setBairro} placeholder="Bairro" placeholderTextColor="#AAAAAA" />
 
         <Text style={styles.label}>Horário</Text>
-        <TextInput style={styles.input} value={horario} onChangeText={setHorario} placeholder="Ex.: Seg a Sex, 8h às 17h" />
+        <TextInput style={styles.input} value={horario} onChangeText={setHorario} placeholder="Ex.: Seg a Sex, 8h às 17h" placeholderTextColor="#AAAAAA" />
 
         <Text style={styles.label}>Tipo</Text>
         <View style={styles.tipoContainer}>
@@ -135,6 +137,8 @@ export default function TelaFormPonto() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {mensagem ? <Text style={styles.mensagem}>{mensagem}</Text> : null}
 
         <TouchableOpacity style={styles.botaoSalvar} onPress={salvar} disabled={salvando}>
           {salvando ? (
@@ -169,6 +173,11 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
+  },
+  mensagem: {
+    fontSize: 14,
+    color: '#D32F2F',
+    marginTop: 16,
   },
   label: {
     fontSize: 14,
