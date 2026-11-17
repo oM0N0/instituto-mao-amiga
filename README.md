@@ -26,6 +26,8 @@ A partir da N2, pontos de coleta e doações ficam numa API Spring Boot, que est
 
 O app acessa a API pelo IP do computador na rede local (não usa `localhost`), por isso funciona no celular.
 
+**Teste da N2:** o app foi testado no navegador (`npx expo start --web`), com a API rodando no mesmo computador. Foram testados: lista com rolagem infinita e busca, cadastro, edição e exclusão de ponto, cadastro, edição e exclusão de doação, histórico com filtro e favoritos (marcar, desmarcar e continuar salvo depois de recarregar a página). No navegador a confirmação de exclusão usa a janela do próprio navegador; no celular usa o `Alert` com Cancelar e Excluir.
+
 ## API: pontos de coleta
 
 | Método | URL | O que faz | Respostas |
