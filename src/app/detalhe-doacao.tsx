@@ -2,7 +2,6 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { statusDoErro } from '../services/api';
 import { buscarDoacaoPorId, excluirDoacao } from '../services/doacoesService';
+import { avisar, confirmarExclusao } from '../utils/dialogos';
 import type { Doacao } from '../types/doacao';
 import { formatarData } from '../utils/formatarData';
 
@@ -41,21 +41,14 @@ export default function TelaDetalheDoacao() {
   );
 
   function handleExcluir() {
-    Alert.alert('Excluir doação', 'Tem certeza que deseja excluir esta doação?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await excluirDoacao(id);
-            router.back();
-          } catch {
-            Alert.alert('Erro', 'Não foi possível excluir a doação. Verifique se a API está ligada.');
-          }
-        },
-      },
-    ]);
+    confirmarExclusao('Excluir doação', 'Tem certeza que deseja excluir esta doação?', async () => {
+      try {
+        await excluirDoacao(id);
+        router.back();
+      } catch {
+        avisar('Erro', 'Não foi possível excluir a doação. Verifique se a API está ligada.');
+      }
+    });
   }
 
   if (carregando) {

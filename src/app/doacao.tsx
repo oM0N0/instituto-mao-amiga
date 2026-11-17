@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -37,6 +36,8 @@ export default function TelaCadastroDoacao() {
   const [erroCarregar, setErroCarregar] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [erroQuantidade, setErroQuantidade] = useState('');
+  // mensagem mostrada na própria tela, acima do botão (funciona no celular e no navegador)
+  const [mensagem, setMensagem] = useState('');
 
   const carregar = useCallback(async () => {
     try {
@@ -82,18 +83,19 @@ export default function TelaCadastroDoacao() {
 
   async function handleSalvar() {
     if (!tipoItem.trim()) {
-      Alert.alert('Atenção', 'Informe o tipo do item.');
+      setMensagem('Informe o tipo do item.');
       return;
     }
     if (!quantidadeValida(quantidade)) {
-      Alert.alert('Atenção', 'Informe uma quantidade válida.');
+      setMensagem('Informe uma quantidade válida.');
       return;
     }
     if (!pontoDestino) {
-      Alert.alert('Atenção', 'Selecione o ponto de destino.');
+      setMensagem('Selecione o ponto de destino.');
       return;
     }
 
+    setMensagem('');
     setSalvando(true);
     const dados = {
       tipoItem: tipoItem.trim(),
@@ -112,11 +114,11 @@ export default function TelaCadastroDoacao() {
     } catch (e) {
       const status = statusDoErro(e);
       if (status === 400) {
-        Alert.alert('Erro', 'A API recusou os dados. Verifique os campos.');
+        setMensagem('A API recusou os dados. Verifique os campos.');
       } else if (status === 404) {
-        Alert.alert('Erro', 'Esta doação não existe mais.');
+        setMensagem('Esta doação não existe mais.');
       } else {
-        Alert.alert('Erro', 'Não foi possível salvar. Verifique se a API está ligada.');
+        setMensagem('Não foi possível salvar. Verifique se a API está ligada.');
       }
     } finally {
       setSalvando(false);
@@ -157,6 +159,7 @@ export default function TelaCadastroDoacao() {
           <TextInput
             style={styles.input}
             placeholder="Ex: Arroz, Roupas, Brinquedos"
+            placeholderTextColor="#AAAAAA"
             value={tipoItem}
             onChangeText={setTipoItem}
           />
@@ -165,6 +168,7 @@ export default function TelaCadastroDoacao() {
           <TextInput
             style={[styles.input, erroQuantidade ? styles.inputErro : null]}
             placeholder="Ex: 10"
+            placeholderTextColor="#AAAAAA"
             value={quantidade}
             onChangeText={validarQuantidade}
             keyboardType="numeric"
@@ -193,6 +197,8 @@ export default function TelaCadastroDoacao() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {mensagem ? <Text style={styles.mensagem}>{mensagem}</Text> : null}
 
           <TouchableOpacity style={styles.botao} onPress={handleSalvar} disabled={salvando}>
             {salvando ? (
@@ -261,6 +267,11 @@ const styles = StyleSheet.create({
     color: '#D32F2F',
     fontSize: 13,
     marginBottom: 16,
+  },
+  mensagem: {
+    color: '#D32F2F',
+    fontSize: 14,
+    marginBottom: 8,
   },
   pontosContainer: {
     gap: 8,
